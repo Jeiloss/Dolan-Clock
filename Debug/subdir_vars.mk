@@ -9,32 +9,44 @@ CMD_SRCS += \
 ../msp432p401r.cmd 
 
 C_SRCS += \
+../clock.c \
 ../main.c \
+../portfunc.c \
 ../startup_msp432p401r_ccs.c \
 ../system_msp432p401r.c 
 
 C_DEPS += \
+./clock.d \
 ./main.d \
+./portfunc.d \
 ./startup_msp432p401r_ccs.d \
 ./system_msp432p401r.d 
 
 OBJS += \
+./clock.obj \
 ./main.obj \
+./portfunc.obj \
 ./startup_msp432p401r_ccs.obj \
 ./system_msp432p401r.obj 
 
 OBJS__QUOTED += \
+"clock.obj" \
 "main.obj" \
+"portfunc.obj" \
 "startup_msp432p401r_ccs.obj" \
 "system_msp432p401r.obj" 
 
 C_DEPS__QUOTED += \
+"clock.d" \
 "main.d" \
+"portfunc.d" \
 "startup_msp432p401r_ccs.d" \
 "system_msp432p401r.d" 
 
 C_SRCS__QUOTED += \
+"../clock.c" \
 "../main.c" \
+"../portfunc.c" \
 "../startup_msp432p401r_ccs.c" \
 "../system_msp432p401r.c" 
 
