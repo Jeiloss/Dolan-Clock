@@ -14,26 +14,39 @@ void InitLED (void) {
     P2OUT|=(BIT0|BIT1|BIT2);
     P2OUT&=BIT2;
 }
-struct color {
-    unsigned short red;
-    unsigned short green;
-    unsigned short blue;
+//struct color {
+//    unsigned short red;
+//    unsigned short green;
+//    unsigned short blue;
+//};
+
+struct colourPair {
+    unsigned short thirty;
+    unsigned short minuteCount;
+
 };
-struct color colorarray[12]={
-                              {255,0,0}, //Red
-                              {255,255,0}, //Yellow
-                              {0,255,0}, //Green
-                              {0,255,255}, //Cyan
-                              {0,0,255}, //Blue
-                              {255,0,255}, //Magenta
-                              {0,0,0}, //No color / Off / Black
-                              {255,255,255} //White / ALL THE COLORS!!!
+struct colourPair colorarray[12]={
+                              {000,001}, //Red
+                              {000,011}, //Yellow
+                              {000,010}, //Green
+                              {000,110}, //Cyan
+                              {000,100}, //Blue
+                              {000,101}, //Magenta
+                              {111,001}, //White & Red
+                              {111,011}, //White & Yellow
+                              {111,010}, //White & Green
+                              {111,110}, //White & Cyan
+                              {111,100}, //White & Blue
+                              {111,101}, //White & Magenta
 };
+
+
 
 void ManageThyme() {
     if (qSec >= /*60*5**/4) {//change minute color!
         minute++; qSec=0;
-        P2OUT ^= BIT1;
+        //P2OUT ^= BIT1;
+        P2OUT ^= colourPair[2].minuteCount;
         //change minute's life.
 //        if (minute >= 60) {
         if (minute >=12) {//change hour pattern!
