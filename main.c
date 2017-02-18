@@ -5,14 +5,13 @@
 unsigned int qSec=0;
 unsigned int minute=0;//PROPOSAL: change to track 5 minutes.
 unsigned int hour=0;
-unsigned short hourPatterns[20];
+unsigned short hourPatterns[24];
 unsigned int hourPatternsPointer=0;
 
 void InitLED2 (void){
     P2DIR|=(BIT0|BIT1|BIT2);
     SelectPortFunction(2,0,0,0);
-//    SelectPortFunction(2,1,0,0);//need more than 1?
-//    SelectPortFunction(2,2,0,0);//Shouldn't just 1 timer be fine?
+
     P2OUT &=~(BIT0|BIT1|BIT2);//turns light off.
 }
 
@@ -80,16 +79,9 @@ void HourPattern(void) {
         if (x>=6) {
             x-=6;
             i += FlashLong(i);
-//            hourPatterns[i] = 1;i++;
-//            hourPatterns[i] = 1;i++;
-////            hourPatterns[i] = 0;i++;
-//            hourPatterns[i] = 0;i++;
         } else {
             x--;
             i += FlashShort(i);
-//            hourPatterns[i] = 1;i++;
-////            hourPatterns[i] = 0;i++;
-//            hourPatterns[i] = 0;i++;
         }
     }
     hourPatterns[i] = 0;i++;
@@ -97,19 +89,28 @@ void HourPattern(void) {
     hourPatterns[i] = 0;i++;
     hourPatterns[i] = 0;i++;
 
-
     hourPatterns[i]=2;
 }
 
 void IncrHour(void) {
     hour++;
+    if (hour > 23) {
+        hour =0;
+    }
     HourPattern();
+}
+
+void IncrMinute(void) {
+    minute++;
+    if(minute > 11) {
+        minute = 0;
+    }
+
 }
 
 /**Note: qSec is being incremented before ManageThyme is called,
  *       so don't worry that it is not being implemented here.
  *
- * Idea: Change blinking speed to 1-sec. ~Kyle
  */
 void ManageThyme(void){
 
@@ -139,12 +140,9 @@ void ManageThyme(void){
     }
     hourPatternsPointer++;
 
-//Handle minute Inc.
-//    if (qSec>=4){
-//        minute++; qSec=0;
-//    }
+
 //Handle Hour Inc.
-    if (qSec>=/*60*5**/4){//change minute color!
+    if (qSec>=60*5*4){//change minute color!
         minute++; qSec=0;
         if (minute>=11) {//change hour pattern!
             minute=0;
@@ -169,16 +167,67 @@ void ConfigureTimer (void) {
     TA0CCR0 = 0x1f40;//quar-sec
     TA0CTL = 0x0116;
 }
-void PortOneInterrupt (void) {
 
+unsigned short mode;
+void PortOneInterrupt (void) {
+    unsigned short iflag = P1IV;
+
+    if(iflag == 04){
+        // Change Mode
+        if(mode < 2)
+            mode++;
+        else
+            mode = 0;
+    }
+    if(iflag == 0x000A){
+        // Increment Hour or Minute
+        if(mode == 1)
+            IncrMinute();
+        if(mode == 2)
+            IncrHour();
+    }
+}
+
+void InitializePushButton(void){
+    P2DIR = ~BIT1;
+    P1REN |= BIT1;
+    P1OUT |= BIT1;
+    if(P1SEL0 & BIT1){
+        if(P1SEL1 & BIT1)
+            P1SELC |= BIT1;
+        else
+            P1SEL0 &= ~BIT1;
+    }
+    else if(P1SEL1 & BIT1){
+        P1SEL1 &= ~BIT1;
+    }
+
+    P2DIR = ~BIT4;
+        P1REN |= BIT4;
+        P1OUT |= BIT4;
+        if(P1SEL0 & BIT4){
+            if(P1SEL1 & BIT4)
+                P1SELC |= BIT4;
+            else
+                P1SEL0 &= ~BIT4;
+        }
+        else if (P1SEL1 & BIT4)
+            P1SEL1 &= ~BIT4;
 }
 
 void main(void) {
     WDTCTL = WDTPW | WDTHOLD;           // Stop watchdog timer
-    NVIC_EnableIRQ(TA0_N_IRQn);
+
     InitLED2();
     InitLED1();
     ConfigureTimer();
+    InitializePushButton();
     HourPattern();
+
+    P1IE = (BIT1|BIT4);
+    P1IES = (BIT1|BIT4);
+    NVIC_EnableIRQ(TA0_N_IRQn);
+    NVIC_EnableIRQ(PORT1_IRQn);
+
     for(;;);
 }
